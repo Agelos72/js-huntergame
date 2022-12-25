@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<div></div>
+<p style="display:inline">Score:</p>
+<p id="score-holder"; style="display:inline" ></p>
+<h1></h1>
+<p id="game over"; style="text-align:center;color:blue;font-size:26px;" ></p>
+
+<h1 style="text-align: center;"><a href="../Hunter Game.html">Return</a>
+<h1 style="text-align: center;"><a href="Code18.html">Play again</a>
+<script>
+
+var myGamePiece;/*kinoumeni platforma*/
+var myGameCircle;/*balla*/
+var ipsos;/*ipsos sto opoio energopoieitai to bounce kai to telos paixnidiou*/
+var collision=false;/*duakoptis gia tin epafi tis ballas me ti platforma*/
+var score=0;
+var pieceangle=0/*gonia kinisis ballas*/
+var ballspeedfactor=1;
+var ballspeed=0.2;
+var xincr=1;
+
+
+
+function startGame() {
+    myGameArea.start();
+    myGamePiece = new component(120, 20, "red", 200, 800,0, false);/*ylopoiisi kinoumenis platformas*/
+	myGameBall = new component(10, 10, "blue", 50,100,0.98, ballspeed);/*ylopoiisi ballas*/
+	myTarget= new component(10, 150, "green", 500,75, 0.99, 0.1);/*ylopoiisi stoxou*/
+	ipsos=1000;
+	
+}
+/*sxediasi kamva*/
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 1480;
+        this.canvas.height = 700;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.interval = setInterval(updateGameArea, 20);
+        window.addEventListener('keydown', function (e) {
+            myGameArea.key = e.keyCode;
+        })
+        window.addEventListener('keyup', function (e) {
+            myGameArea.key = false;
+        })
+    }, 
+	 stop : function() {
+        clearInterval(this.interval);
+    },
+    clear : function(){
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+/*sxediasi vasikou component*/
+function component(width, height, color, x, y, bounce, gravity,type) {
+    this.gamearea = myGameArea;
+    this.width = width;
+    this.height = height;
+	this.angle = 0;
+    this.speedX = 0;
+    this.speedY = 0;    
+    this.x = x;
+    this.y = y;    
+	this.gravity = gravity;
+	this.gravitySpeed = 0;
+	this.bounce = bounce;
+    this.update = function() {
+        ctx = myGameArea.context;
+		ctx.save();
+		ctx.translate(this.x, this.y); 
+		ctx.rotate(this.angle);
+        ctx.fillStyle = color;
+        ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
+		ctx.restore(); 
+		
+    }
+    this.newPos = function() {
+        this.x += this.speedX;
+		if(this.type==true){this.y += this.speedY;}
+         else{this.y+=this.speedY+ this.gravitySpeed;}  
+		this.gravitySpeed += this.gravity;
+		this.hitBottom();
+  }
+  
+  this.hitBottom = function() {
+    var rockbottom = /*this.gamearea.canvas.height*/ipsos - this.height;
+    if (this.y > rockbottom) {
+      this.y = rockbottom;
+      this.gravitySpeed = -(this.gravitySpeed * this.bounce);
+}
+  
+    }
+
+
+}
+
+  
+
+function updateGameArea() {
+	document.getElementById("score-holder").innerHTML=score;
+    myGameArea.clear();
+    myGamePiece.speedX = 0;
+    myGamePiece.speedY = 0; 
+	
+	myGameBall.x+=xincr*pieceangle*10; /*allagi gonias ballas meta tin epafi tis me ti platforma*/
+    if (myGameArea.key && myGameArea.key == 37) {myGamePiece.speedX = -15;}
+    if (myGameArea.key && myGameArea.key == 39) {myGamePiece.speedX = 15;}
+    if (myGameArea.key && myGameArea.key == 38) {myGamePiece.angle += 5 * Math.PI / 180; }
+    if (myGameArea.key && myGameArea.key == 40) {myGamePiece.angle -= 5 * Math.PI / 180; }
+	if ((myGamePiece.x-myGameBall.x>-50) && (myGamePiece.x-myGameBall.x<50)&&(myGameBall.y>680&&myGameBall.y<720))  {ipsos=700; pieceangle=myGamePiece.angle;}else{ipsos=myGameArea.canvas.height;}/*energeies epafis ballas me platforma*/
+	if (((myGamePiece.x<myGameBall.x-50) || (myGamePiece.x>myGameBall.x+50))&&(myGameBall.y>660))  {myGameArea.stop();document.getElementById("game over").innerHTML="Game Over";}/*energeies otan i balla pesei ektos platformas*/
+	if ((myGameBall.y<myTarget.y+100) &&  (myGameBall.y>(myTarget.y-100))&&(myGameBall.x>(myTarget.x-10))&&(myGameBall.x<(myTarget.x+10))) {score+=10;myGameBall.gravity*=1.01;}/*energeies otan i balla xtipisei stoxo*/
+	if (myGameBall.x<0||myGameBall.x>1480) {xincr=-xincr;}/*energeies otan i balla xtipisei sta plaina tixomata*/
+    myGamePiece.newPos(); 
+    myGamePiece.update();
+    myGameBall.newPos(); 
+    myGameBall.update();
+	myTarget.newPos(); 
+    myTarget.update();
+}
+</script>
+
+</body>
+</html>
